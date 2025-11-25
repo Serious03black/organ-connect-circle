@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, Heart, User, Phone, Mail, MapPin, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { NotificationBadge } from "@/components/NotificationBadge";
+import NotificationBadge from "@/components/NotificationBadge";
 
 interface DonorDashboardProps {
   profile: any;

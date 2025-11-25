@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Users, Heart, Activity, Bell } from "lucide-react";
-import { NotificationBadge } from "@/components/NotificationBadge";
+import NotificationBadge from "@/components/NotificationBadge";
 
 interface DoctorDashboardProps {
   profile: any;

@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Plus, Users, Heart, Bell } from "lucide-react";
 import AddRequirementDialog from "./AddRequirementDialog";
-import { NotificationBadge } from "@/components/NotificationBadge";
+import NotificationBadge from "@/components/NotificationBadge";
 
 interface PatientDashboardProps {
   profile: any;
