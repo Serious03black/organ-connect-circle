@@ -3,13 +3,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Users, Heart, Activity } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
+import { Users, Heart, Activity, Bell } from "lucide-react";
+import { NotificationBadge } from "@/components/NotificationBadge";
 
 interface DoctorDashboardProps {
   profile: any;
 }
 
 const DoctorDashboard = ({ profile }: DoctorDashboardProps) => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState({
     totalPatients: 0,
     totalDonors: 0,
@@ -40,9 +44,16 @@ const DoctorDashboard = ({ profile }: DoctorDashboardProps) => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold">Welcome, Dr. {profile.full_name}</h2>
-        <p className="text-muted-foreground">Medical Professional Dashboard</p>
+      <div className="flex justify-between items-start">
+        <div>
+          <h2 className="text-3xl font-bold">Welcome, Dr. {profile.full_name}</h2>
+          <p className="text-muted-foreground">Medical Professional Dashboard</p>
+        </div>
+        <Button onClick={() => navigate("/notifications")} variant="outline">
+          <Bell className="mr-2 h-4 w-4" />
+          Notifications
+          <NotificationBadge />
+        </Button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">

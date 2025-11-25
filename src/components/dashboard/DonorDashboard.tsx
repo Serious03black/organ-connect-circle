@@ -4,8 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Heart, User, Phone, Mail, MapPin } from "lucide-react";
+import { Search, Heart, User, Phone, Mail, MapPin, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { NotificationBadge } from "@/components/NotificationBadge";
 
 interface DonorDashboardProps {
   profile: any;
@@ -57,9 +58,16 @@ const DonorDashboard = ({ profile }: DonorDashboardProps) => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold">Welcome, {profile.full_name}</h2>
-        <p className="text-muted-foreground">Donor Dashboard</p>
+      <div className="flex justify-between items-start">
+        <div>
+          <h2 className="text-3xl font-bold">Welcome, {profile.full_name}</h2>
+          <p className="text-muted-foreground">Donor Dashboard</p>
+        </div>
+        <Button onClick={() => navigate("/notifications")} variant="outline">
+          <Bell className="mr-2 h-4 w-4" />
+          Notifications
+          <NotificationBadge />
+        </Button>
       </div>
 
       <div className="relative">

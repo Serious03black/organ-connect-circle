@@ -20,6 +20,7 @@ export type Database = {
           id: string
           message: string
           recipient_id: string
+          response: string | null
           sender_id: string
           status: string
           updated_at: string
@@ -29,6 +30,7 @@ export type Database = {
           id?: string
           message: string
           recipient_id: string
+          response?: string | null
           sender_id: string
           status?: string
           updated_at?: string
@@ -38,6 +40,7 @@ export type Database = {
           id?: string
           message?: string
           recipient_id?: string
+          response?: string | null
           sender_id?: string
           status?: string
           updated_at?: string
