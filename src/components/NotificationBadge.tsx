@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 
-export const NotificationBadge = () => {
+const NotificationBadge = () => {
   const [count, setCount] = useState(0);
 
   useEffect(() => {
@@ -54,3 +54,5 @@ export const NotificationBadge = () => {
     </Badge>
   );
 };
+
+export default NotificationBadge;
