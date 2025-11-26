@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Users, Heart, Activity, Bell } from "lucide-react";
 import NotificationBadge from "@/components/NotificationBadge";
+import DoctorApprovals from "./DoctorApprovals";
 
 interface DoctorDashboardProps {
   profile: any;
@@ -86,11 +87,16 @@ const DoctorDashboard = ({ profile }: DoctorDashboardProps) => {
         </Card>
       </div>
 
-      <Tabs defaultValue="patients" className="space-y-4">
+      <Tabs defaultValue="approvals" className="space-y-4">
         <TabsList>
+          <TabsTrigger value="approvals">Pending Approvals</TabsTrigger>
           <TabsTrigger value="patients">Patients</TabsTrigger>
           <TabsTrigger value="donors">Donors</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="approvals" className="space-y-4">
+          <DoctorApprovals />
+        </TabsContent>
 
         <TabsContent value="patients" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">

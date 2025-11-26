@@ -6,7 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Mail, Phone, MapPin, Heart, Calendar } from "lucide-react";
+import { ArrowLeft, Mail, Phone, MapPin, Heart, Calendar, MessageCircle } from "lucide-react";
+import ChatInterface from "@/components/chat/ChatInterface";
 
 export default function PatientDetail() {
   const { id } = useParams();
@@ -15,8 +16,10 @@ export default function PatientDetail() {
   const [patient, setPatient] = useState<any>(null);
   const [requirements, setRequirements] = useState<any[]>([]);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentProfile, setCurrentProfile] = useState<any>(null);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
+  const [showChat, setShowChat] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -26,6 +29,15 @@ export default function PatientDetail() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       setCurrentUser(user);
+
+      if (user) {
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", user.id)
+          .single();
+        setCurrentProfile(profileData);
+      }
 
       const { data: patientData, error: patientError } = await supabase
         .from("profiles")
@@ -190,23 +202,46 @@ export default function PatientDetail() {
         </Card>
 
         {currentUser?.id !== id && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Send Contact Request</CardTitle>
-              <CardDescription>Send a message to this patient</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Textarea
-                placeholder="Enter your message..."
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                rows={4}
-              />
-              <Button onClick={handleSendRequest} className="w-full">
-                Send Request
+          <>
+            <div className="flex gap-2 mb-6">
+              <Button
+                onClick={() => setShowChat(!showChat)}
+                variant={showChat ? "default" : "outline"}
+                className="flex-1"
+              >
+                <MessageCircle className="w-4 h-4 mr-2" />
+                {showChat ? "Hide Chat" : "Start Chat"}
               </Button>
-            </CardContent>
-          </Card>
+            </div>
+
+            {showChat && currentProfile && (
+              <div className="mb-6">
+                <ChatInterface
+                  recipientId={id!}
+                  recipientName={patient.full_name}
+                  currentUserId={currentUser.id}
+                />
+              </div>
+            )}
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Send Contact Request</CardTitle>
+                <CardDescription>Send a message to this patient</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Textarea
+                  placeholder="Enter your message..."
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  rows={4}
+                />
+                <Button onClick={handleSendRequest} className="w-full">
+                  Send Request
+                </Button>
+              </CardContent>
+            </Card>
+          </>
         )}
       </div>
     </div>
