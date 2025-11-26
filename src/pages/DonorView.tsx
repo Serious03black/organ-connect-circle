@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Search } from "lucide-react";
 
@@ -13,10 +14,24 @@ export default function DonorView() {
   const [donors, setDonors] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
 
   useEffect(() => {
     fetchDonors();
+    fetchCurrentUser();
   }, []);
+
+  const fetchCurrentUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+      setCurrentUserRole(profile?.role || null);
+    }
+  };
 
   const fetchDonors = async () => {
     try {
@@ -81,8 +96,17 @@ export default function DonorView() {
                 onClick={() => navigate(`/donor/${donor.id}`)}
               >
                 <CardHeader>
-                  <CardTitle>{donor.full_name}</CardTitle>
-                  <CardDescription>{donor.email}</CardDescription>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle>{donor.full_name}</CardTitle>
+                      <CardDescription>{donor.email}</CardDescription>
+                    </div>
+                    {currentUserRole === "doctor" && (
+                      <Badge variant={donor.approved_by_doctor ? "default" : "secondary"}>
+                        {donor.approved_by_doctor ? "Approved" : "Pending"}
+                      </Badge>
+                    )}
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2 text-sm">

@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Mail, Phone, MapPin, Heart, Calendar } from "lucide-react";
+import { ArrowLeft, Mail, Phone, MapPin, Heart, Calendar, MessageCircle, CheckCircle, XCircle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import ChatInterface from "@/components/chat/ChatInterface";
 
 export default function DonorDetail() {
   const { id } = useParams();
@@ -13,8 +15,10 @@ export default function DonorDetail() {
   const { toast } = useToast();
   const [donor, setDonor] = useState<any>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentProfile, setCurrentProfile] = useState<any>(null);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
+  const [showChat, setShowChat] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -24,6 +28,15 @@ export default function DonorDetail() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       setCurrentUser(user);
+
+      if (user) {
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", user.id)
+          .single();
+        setCurrentProfile(profileData);
+      }
 
       const { data: donorData, error: donorError } = await supabase
         .from("profiles")
@@ -77,6 +90,56 @@ export default function DonorDetail() {
     }
   };
 
+  const handleApprove = async () => {
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          approved_by_doctor: true,
+          approved_at: new Date().toISOString(),
+          approved_by: currentUser?.id,
+        })
+        .eq("id", id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Donor approved successfully",
+      });
+      fetchData();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to approve donor",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleReject = async () => {
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Donor registration rejected",
+      });
+      navigate("/dashboard");
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to reject donor",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -103,8 +166,18 @@ export default function DonorDetail() {
 
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle className="text-3xl">{donor.full_name}</CardTitle>
-            <CardDescription>Donor Profile</CardDescription>
+            <div className="flex justify-between items-start">
+              <div>
+                <CardTitle className="text-3xl">{donor.full_name}</CardTitle>
+                <CardDescription>Donor Profile</CardDescription>
+              </div>
+              {!donor.approved_by_doctor && (
+                <Badge variant="secondary">Pending Approval</Badge>
+              )}
+              {donor.approved_by_doctor && (
+                <Badge variant="default">Approved</Badge>
+              )}
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -146,24 +219,72 @@ export default function DonorDetail() {
           </CardContent>
         </Card>
 
-        {currentUser?.id !== id && (
-          <Card>
+        {currentProfile?.role === "doctor" && !donor.approved_by_doctor && (
+          <Card className="mb-6">
             <CardHeader>
-              <CardTitle>Send Contact Request</CardTitle>
-              <CardDescription>Send a message to this donor</CardDescription>
+              <CardTitle>Doctor Approval</CardTitle>
+              <CardDescription>Review and approve/reject this donor</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <Textarea
-                placeholder="Enter your message..."
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                rows={4}
-              />
-              <Button onClick={handleSendRequest} className="w-full">
-                Send Request
-              </Button>
+            <CardContent>
+              <div className="flex gap-2">
+                <Button onClick={handleApprove} className="flex-1">
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Approve Donor
+                </Button>
+                <Button
+                  onClick={handleReject}
+                  variant="destructive"
+                  className="flex-1"
+                >
+                  <XCircle className="w-4 h-4 mr-2" />
+                  Reject
+                </Button>
+              </div>
             </CardContent>
           </Card>
+        )}
+
+        {currentUser?.id !== id && donor.approved_by_doctor && (
+          <>
+            <div className="flex gap-2 mb-6">
+              <Button
+                onClick={() => setShowChat(!showChat)}
+                variant={showChat ? "default" : "outline"}
+                className="flex-1"
+              >
+                <MessageCircle className="w-4 h-4 mr-2" />
+                {showChat ? "Hide Chat" : "Start Chat"}
+              </Button>
+            </div>
+
+            {showChat && currentProfile && (
+              <div className="mb-6">
+                <ChatInterface
+                  recipientId={id!}
+                  recipientName={donor.full_name}
+                  currentUserId={currentUser.id}
+                />
+              </div>
+            )}
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Send Contact Request</CardTitle>
+                <CardDescription>Send a message to this donor</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Textarea
+                  placeholder="Enter your message..."
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  rows={4}
+                />
+                <Button onClick={handleSendRequest} className="w-full">
+                  Send Request
+                </Button>
+              </CardContent>
+            </Card>
+          </>
         )}
       </div>
     </div>
