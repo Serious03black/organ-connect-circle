@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Mail, Phone, MapPin, Heart, Calendar, MessageCircle, CheckCircle, XCircle } from "lucide-react";
+import { ArrowLeft, Mail, Phone, MapPin, Heart, Calendar, MessageCircle, CheckCircle, XCircle, Video } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import ChatInterface from "@/components/chat/ChatInterface";
+import VideoCall from "@/components/video/VideoCall";
 
 export default function DonorDetail() {
   const { id } = useParams();
@@ -19,6 +20,8 @@ export default function DonorDetail() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [showChat, setShowChat] = useState(false);
+  const [videoRoomUrl, setVideoRoomUrl] = useState<string | null>(null);
+  const [isCreatingRoom, setIsCreatingRoom] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -140,6 +143,40 @@ export default function DonorDetail() {
     }
   };
 
+  const startVideoCall = async () => {
+    setIsCreatingRoom(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-video-room', {
+        body: {
+          participants: [
+            { userId: currentUser?.id, name: 'You', is_owner: true },
+            { userId: donor.id, name: donor.full_name, is_owner: false },
+          ],
+        },
+      });
+
+      if (error) throw error;
+
+      setVideoRoomUrl(data.room_url);
+      toast({
+        title: "Success",
+        description: "Video call room created",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to create video room",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreatingRoom(false);
+    }
+  };
+
+  const endVideoCall = () => {
+    setVideoRoomUrl(null);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -246,24 +283,41 @@ export default function DonorDetail() {
 
         {currentUser?.id !== id && donor.approved_by_doctor && (
           <>
-            <div className="flex gap-2 mb-6">
-              <Button
-                onClick={() => setShowChat(!showChat)}
-                variant={showChat ? "default" : "outline"}
-                className="flex-1"
-              >
-                <MessageCircle className="w-4 h-4 mr-2" />
-                {showChat ? "Hide Chat" : "Start Chat"}
-              </Button>
-            </div>
+            {!videoRoomUrl ? (
+              <>
+                <div className="flex gap-2 mb-6">
+                  <Button
+                    onClick={startVideoCall}
+                    disabled={isCreatingRoom}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    <Video className="w-4 h-4 mr-2" />
+                    {isCreatingRoom ? "Creating room..." : "Start Video Call"}
+                  </Button>
+                  <Button
+                    onClick={() => setShowChat(!showChat)}
+                    variant={showChat ? "default" : "outline"}
+                    className="flex-1"
+                  >
+                    <MessageCircle className="w-4 h-4 mr-2" />
+                    {showChat ? "Hide Chat" : "Start Chat"}
+                  </Button>
+                </div>
 
-            {showChat && currentProfile && (
+                {showChat && currentProfile && (
+                  <div className="mb-6">
+                    <ChatInterface
+                      recipientId={id!}
+                      recipientName={donor.full_name}
+                      currentUserId={currentUser.id}
+                    />
+                  </div>
+                )}
+              </>
+            ) : (
               <div className="mb-6">
-                <ChatInterface
-                  recipientId={id!}
-                  recipientName={donor.full_name}
-                  currentUserId={currentUser.id}
-                />
+                <VideoCall roomUrl={videoRoomUrl} onLeave={endVideoCall} />
               </div>
             )}
 
