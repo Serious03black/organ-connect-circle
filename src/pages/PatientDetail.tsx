@@ -6,8 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Mail, Phone, MapPin, Heart, Calendar, MessageCircle } from "lucide-react";
+import { ArrowLeft, Mail, Phone, MapPin, Heart, Calendar, MessageCircle, Video } from "lucide-react";
 import ChatInterface from "@/components/chat/ChatInterface";
+import VideoCall from "@/components/video/VideoCall";
 
 export default function PatientDetail() {
   const { id } = useParams();
@@ -20,6 +21,8 @@ export default function PatientDetail() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [showChat, setShowChat] = useState(false);
+  const [videoRoomUrl, setVideoRoomUrl] = useState<string | null>(null);
+  const [isCreatingRoom, setIsCreatingRoom] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -98,6 +101,40 @@ export default function PatientDetail() {
         variant: "destructive",
       });
     }
+  };
+
+  const startVideoCall = async () => {
+    setIsCreatingRoom(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-video-room', {
+        body: {
+          participants: [
+            { userId: currentUser?.id, name: 'You', is_owner: true },
+            { userId: patient.id, name: patient.full_name, is_owner: false },
+          ],
+        },
+      });
+
+      if (error) throw error;
+
+      setVideoRoomUrl(data.room_url);
+      toast({
+        title: "Success",
+        description: "Video call room created",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to create video room",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreatingRoom(false);
+    }
+  };
+
+  const endVideoCall = () => {
+    setVideoRoomUrl(null);
   };
 
   if (loading) {
@@ -203,24 +240,41 @@ export default function PatientDetail() {
 
         {currentUser?.id !== id && (
           <>
-            <div className="flex gap-2 mb-6">
-              <Button
-                onClick={() => setShowChat(!showChat)}
-                variant={showChat ? "default" : "outline"}
-                className="flex-1"
-              >
-                <MessageCircle className="w-4 h-4 mr-2" />
-                {showChat ? "Hide Chat" : "Start Chat"}
-              </Button>
-            </div>
+            {!videoRoomUrl ? (
+              <>
+                <div className="flex gap-2 mb-6">
+                  <Button
+                    onClick={startVideoCall}
+                    disabled={isCreatingRoom}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    <Video className="w-4 h-4 mr-2" />
+                    {isCreatingRoom ? "Creating room..." : "Start Video Call"}
+                  </Button>
+                  <Button
+                    onClick={() => setShowChat(!showChat)}
+                    variant={showChat ? "default" : "outline"}
+                    className="flex-1"
+                  >
+                    <MessageCircle className="w-4 h-4 mr-2" />
+                    {showChat ? "Hide Chat" : "Start Chat"}
+                  </Button>
+                </div>
 
-            {showChat && currentProfile && (
+                {showChat && currentProfile && (
+                  <div className="mb-6">
+                    <ChatInterface
+                      recipientId={id!}
+                      recipientName={patient.full_name}
+                      currentUserId={currentUser.id}
+                    />
+                  </div>
+                )}
+              </>
+            ) : (
               <div className="mb-6">
-                <ChatInterface
-                  recipientId={id!}
-                  recipientName={patient.full_name}
-                  currentUserId={currentUser.id}
-                />
+                <VideoCall roomUrl={videoRoomUrl} onLeave={endVideoCall} />
               </div>
             )}
 
