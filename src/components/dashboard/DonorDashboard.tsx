@@ -4,11 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Heart, User, Phone, Mail, MapPin, Bell } from "lucide-react";
+import { Search, Heart, User, Phone, Mail, MapPin, Bell, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import NotificationBadge from "@/components/NotificationBadge";
-import ConferenceCallDialog from "@/components/video/ConferenceCallDialog";
-import ConferenceCallInvitations from "@/components/video/ConferenceCallInvitations";
 
 interface DonorDashboardProps {
   profile: any;
@@ -101,17 +99,12 @@ const DonorDashboard = ({ profile }: DonorDashboardProps) => {
             Notifications
             <NotificationBadge />
           </Button>
-          <ConferenceCallDialog 
-            currentUserId={profile.id}
-            currentUserName={profile.full_name}
-          />
+          <Button onClick={() => navigate("/conference-calls")} variant="outline">
+            <Users className="mr-2 h-4 w-4" />
+            Conference Calls
+          </Button>
         </div>
       </div>
-
-      <ConferenceCallInvitations 
-        currentUserId={profile.id}
-        currentUserName={profile.full_name}
-      />
 
       <div className="relative">
         <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />

@@ -99,12 +99,21 @@ export default function ConferenceCallDialog({ currentUserId, currentUserName }:
 
       if (callError) throw callError;
 
-      // Add participants
-      const participantInserts = Array.from(selectedParticipants).map((userId) => ({
-        call_request_id: callRequest.id,
-        user_id: userId,
-        status: "invited",
-      }));
+      // Add participants (including initiator)
+      const participantInserts = [
+        // Add initiator as accepted by default
+        {
+          call_request_id: callRequest.id,
+          user_id: currentUserId,
+          status: "accepted",
+        },
+        // Add invited participants
+        ...Array.from(selectedParticipants).map((userId) => ({
+          call_request_id: callRequest.id,
+          user_id: userId,
+          status: "invited",
+        }))
+      ];
 
       const { error: participantsError } = await supabase
         .from("video_call_participants")
