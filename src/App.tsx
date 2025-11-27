@@ -12,6 +12,7 @@ import DonorView from "./pages/DonorView";
 import PatientDetail from "./pages/PatientDetail";
 import DonorDetail from "./pages/DonorDetail";
 import Notifications from "./pages/Notifications";
+import ConferenceCalls from "./pages/ConferenceCalls";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +32,7 @@ const App = () => (
           <Route path="/patient/:id" element={<PatientDetail />} />
           <Route path="/donor/:id" element={<DonorDetail />} />
           <Route path="/notifications" element={<Notifications />} />
+          <Route path="/conference-calls" element={<ConferenceCalls />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

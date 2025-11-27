@@ -8,8 +8,6 @@ import { useNavigate } from "react-router-dom";
 import { Users, Heart, Activity, Bell } from "lucide-react";
 import NotificationBadge from "@/components/NotificationBadge";
 import DoctorApprovals from "./DoctorApprovals";
-import ConferenceCallDialog from "@/components/video/ConferenceCallDialog";
-import ConferenceCallInvitations from "@/components/video/ConferenceCallInvitations";
 
 interface DoctorDashboardProps {
   profile: any;
@@ -58,17 +56,12 @@ const DoctorDashboard = ({ profile }: DoctorDashboardProps) => {
             Notifications
             <NotificationBadge />
           </Button>
-          <ConferenceCallDialog 
-            currentUserId={profile.id}
-            currentUserName={profile.full_name}
-          />
+          <Button onClick={() => navigate("/conference-calls")} variant="outline">
+            <Users className="mr-2 h-4 w-4" />
+            Conference Calls
+          </Button>
         </div>
       </div>
-
-      <ConferenceCallInvitations 
-        currentUserId={profile.id}
-        currentUserName={profile.full_name}
-      />
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
